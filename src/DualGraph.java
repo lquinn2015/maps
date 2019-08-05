@@ -9,15 +9,23 @@ public class DualGraph
 	Voronoi graph;
 	Delaunay trianglulation;
 	PApplet parent;
+	float width;
+	float height;
 	
-	public DualGraph(PApplet pa, int width, int height, int relaxtion)
+	public DualGraph(PApplet pa, float width, float height, int relaxtion , int numOfPoints)
 	{
 		Random rand = new Random();
 		parent = pa;
-		int numOfPoints = width * height / 1000;
+		
+		this.width = width;
+		this.height = height;
+		
 		float[][] points = new float[numOfPoints][2];
 		
-		for(int i = 0; i < numOfPoints; i++)
+		points[0][0] = -1000;
+		points[0][1] = -1000;
+		
+		for(int i = 1; i < numOfPoints; i++)
 		{
 			points[i][0] = rand.nextFloat() * width;
 			points[i][1] = rand.nextFloat() * height;	
@@ -35,6 +43,33 @@ public class DualGraph
 		
 	}
 	
+	public int[] getNeighbors(int regionID)
+	{
+		
+		int[] links = trianglulation.getLinked(regionID);
+		int nonzero = 0;
+		for(int i = 0; i < links.length; i ++)
+		{
+			if(links[i] != 0)
+			{
+				nonzero++;
+			}
+		}
+		
+		int[] neigbors = new int[nonzero];
+		for(int i = 0; i < neigbors.length; i ++)
+		{
+			if(links[i] != 0)
+			{
+				neigbors[i] = links[i];
+			}
+		}
+		
+		return neigbors;
+		
+		
+	}
+	
 	public float[][] centroidRelaxition(float[][] pointsPre)
 	{
 		
@@ -42,17 +77,19 @@ public class DualGraph
 		MPolygon[] regions = partial.getRegions();
 		
 		float[][] points = new float[regions.length][2];
-		for(int i = 0; i < regions.length; i++)
+		for(int i = 1; i < regions.length; i++)
 		{
 			float[][] polygon = regions[i].getCoords();
 			for(int x = 0; x < polygon.length; x++)
 			{
-				points[i][0] += polygon[x][0];
-				points[i][1] += polygon[x][1];
+				points[i][0] += Math.max(Math.min(polygon[x][0], width), 0 ); // Constrain site points to the screen
+				points[i][1] += Math.max(Math.min(polygon[x][1], width), 0 );
 			}
 			points[i][0] /= polygon.length;
 			points[i][1] /= polygon.length;
 		}		
+		points[0][0] = -1000;
+		points[0][1] = -1000;
 		
 		return points;
 	}
