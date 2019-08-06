@@ -12,7 +12,7 @@ public class VoreTerrain extends PApplet
 	float height = 900;
 	DualGraph graph;
 	float timer = 6;
-	int numOfNodes = 1200;
+	int numOfNodes = 6000;
 		
 	public static void main(String[] args)
 	{
@@ -30,50 +30,30 @@ public class VoreTerrain extends PApplet
 	{
 
 		graph = new DualGraph(this, width, height, 2, numOfNodes);
+		strokeWeight(0);
+		
+		float sharpness = .4f;
+		
+		graph.addIsland(.95f, sharpness, 1);
+		for(int  i = 0; i < 9; i++)
+		{
+			graph.addIsland(.8f, .2f, (float) Math.random()/2 + .3f);
+		}
+		
 
+
+		graph.renderHeightMap();
 		
 
 	}
 	
 	
-	public void draw()
+
+		
+	public void mouseClicked()
 	{
-		stroke(255,0,0);
-		float[][] myEdges = graph.trianglulation.getEdges();
-
-		for(int i=0; i<myEdges.length; i++)
-		{
-		  float startX = myEdges[i][0];
-		  float startY = myEdges[i][1];
-		  float endX = myEdges[i][2];
-		  float endY = myEdges[i][3];
-		  line( startX, startY, endX, endY );
-		}
-		
-		if(timer > 5)
-		{
-			fill(0);
-			rect(0f, 0f, width, height);
-			MPolygon[] regions = graph.graph.getRegions();
-	
-			Random rand = new Random();
-			int x = rand.nextInt(numOfNodes);
-			int[] links = graph.trianglulation.getLinked(x);
-			for(int i = 0; i < links.length; i++)
-			{
-				
-				fill(0,255,0);
-				regions[links[i]].draw(this);
-				System.out.print(links[i] + " ");
-			}
-			System.out.println(" <- x=" + x);
-			timer = 0;
-		}
-		timer += .05;
-		
+		int index = graph.findIndex(mouseX, mouseY)
 	}
-		
-	
 			
 	
 }

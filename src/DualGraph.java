@@ -1,3 +1,6 @@
+import java.awt.Color;
+import java.util.HashSet;
+import java.util.PriorityQueue;
 import java.util.Random;
 
 import mesh.*;
@@ -11,6 +14,19 @@ public class DualGraph
 	PApplet parent;
 	float width;
 	float height;
+	float[] heightmap;   // indexs relate to heights of polygons 
+	float[] touched;
+	int numOfNodes;
+	
+	
+	// CONSTANTS
+	float WATER_HEIGHT = .2f;
+	
+	
+	//
+	
+	
+	
 	
 	public DualGraph(PApplet pa, float width, float height, int relaxtion , int numOfPoints)
 	{
@@ -19,8 +35,11 @@ public class DualGraph
 		
 		this.width = width;
 		this.height = height;
+		numOfNodes = numOfPoints;
+		
 		
 		float[][] points = new float[numOfPoints][2];
+		heightmap = new float[numOfPoints];
 		
 		points[0][0] = -1000;
 		points[0][1] = -1000;
@@ -112,5 +131,121 @@ public class DualGraph
 		}
 		
 	}
+	
+	public void renderHeightMap()
+	{
+		MPolygon[] regions = graph.getRegions();
+		
+		for(int i = 0; i < regions.length; i++)
+		{
+			RGBColor color = getColor(1, heightmap[i]);
+			parent.fill(color.r, color.g, color.b);
+			regions[i].draw(parent);			
+		}
+		
+		
+	}
+	
+	/** 
+	 * Returns an RGB object based on a scale
+	 * @param type
+	 * @param scalar
+	 * @return
+	 */
+	public RGBColor getColor(int type, float scalar)
+	{
+		RGBColor ret = new RGBColor(0, 0, 0);
+		
+		
+		switch(type)
+		{
+			case(1):// heightmap
+			{
+				HSLColor hsl = new HSLColor(230-scalar * 230, 100, 54);
+				Color c = hsl.getRGB();
+				ret.setValue(c.getRed(),c.getGreen(),c.getBlue());
+				return ret;
+			}
+		}
+		
+		return ret;
+	}
+	
+	
+	public void addIsland(float persistence, float sharpness, float startH)
+	{
+		Random rand = new Random();
+		PriorityQueue<Integer> queue = new PriorityQueue<>();
+		HashSet<Integer> visited = new HashSet<>();
+		
+		int curr = rand.nextInt(numOfNodes);
+		heightmap[curr] = startH;// Math.min(rand.nextFloat() + .5f,1);
+		visited.add(curr);
+		queue.add(curr);
+		
+		while(!queue.isEmpty())
+		{
+			curr = queue.poll();
+			int[] neighbors = getNeighbors(curr);
+			
+			for(int i = 0; i < neighbors.length; i++)
+			{
+				if(!visited.contains(neighbors[i]))
+				{
+					float base = heightmap[curr] * persistence;
+					float sharp = (sharpness * rand.nextFloat() -.5f)/20;
+					
+					if(base + sharp < heightmap[curr])
+					{
+						heightmap[neighbors[i]] = base + sharp;	
+					}
+					
+					heightmap[neighbors[i]] = Math.min(heightmap[neighbors[i]], 1);
+					visited.add(neighbors[i]);
+					
+					if(heightmap[neighbors[i]] > .1f  && heightmap[neighbors[i]] < .3f)
+					{
+						heightmap[neighbors[i]] = .075f;
+					}
+					
+					if(heightmap[neighbors[i]] > .01f)
+					{
+						queue.add(neighbors[i]);
+					}
+					
+				}
+			}
+		}	
+		
+		
+		
+	}
+	
+		
+	class RGBColor
+	{
+		public float r,g,b;
+		
+		public RGBColor(float r, float g, float b)
+		{
+			this.r = r;
+			this.g = g;
+			this.b = b;
+		}
+		
+		public void setValue(float r, float g, float b)
+		{
+			this.r = r;
+			this.g = g;
+			this.b = b;
+		}
+	}
+
+
+	public int findIndex(float mouseX, float mouseY) {
+		// TODO Auto-generated method stub
+		return 0;
+	}
+	
 
 }
