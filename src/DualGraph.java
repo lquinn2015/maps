@@ -15,12 +15,13 @@ public class DualGraph
 	float width;
 	float height;
 	float[] heightmap;   // indexs relate to heights of polygons 
-	float[] touched;
+	float[] ram;
+	String[] biomes;
 	int numOfNodes;
-	
+	Random rand;	
 	
 	// CONSTANTS
-	float WATER_HEIGHT = .2f;
+	float WATER_HEIGHT = .3f;
 	
 	
 	//
@@ -30,7 +31,7 @@ public class DualGraph
 	
 	public DualGraph(PApplet pa, float width, float height, int relaxtion , int numOfPoints)
 	{
-		Random rand = new Random();
+		rand = new Random();
 		parent = pa;
 		
 		this.width = width;
@@ -40,6 +41,8 @@ public class DualGraph
 		
 		float[][] points = new float[numOfPoints][2];
 		heightmap = new float[numOfPoints];
+		ram = new float[numOfPoints];
+		biomes = new String[numOfPoints];
 		
 		points[0][0] = -1000;
 		points[0][1] = -1000;
@@ -141,9 +144,7 @@ public class DualGraph
 			RGBColor color = getColor(1, heightmap[i]);
 			parent.fill(color.r, color.g, color.b);
 			regions[i].draw(parent);			
-		}
-		
-		
+		}	
 	}
 	
 	/** 
@@ -174,11 +175,15 @@ public class DualGraph
 	
 	public void addIsland(float persistence, float sharpness, float startH)
 	{
-		Random rand = new Random();
+		addIsland(persistence, sharpness, startH, rand.nextInt(numOfNodes));
+	}
+	
+	public void addIsland(float persistence, float sharpness, float startH, int epicenter)
+	{
 		PriorityQueue<Integer> queue = new PriorityQueue<>();
 		HashSet<Integer> visited = new HashSet<>();
 		
-		int curr = rand.nextInt(numOfNodes);
+		int curr = epicenter;
 		heightmap[curr] = startH;// Math.min(rand.nextFloat() + .5f,1);
 		visited.add(curr);
 		queue.add(curr);
@@ -192,34 +197,34 @@ public class DualGraph
 			{
 				if(!visited.contains(neighbors[i]))
 				{
+					visited.add(neighbors[i]);
+					
 					float base = heightmap[curr] * persistence;
 					float sharp = (sharpness * rand.nextFloat() -.5f)/20;
 					
-					if(base + sharp < heightmap[curr])
+					if(heightmap[curr] - heightmap[neighbors[i]] > .3f)
 					{
 						heightmap[neighbors[i]] = base + sharp;	
+						heightmap[neighbors[i]] = Math.min(heightmap[neighbors[i]], 1);
+						
+						if(heightmap[neighbors[i]] > .1f  && heightmap[neighbors[i]] < WATER_HEIGHT)
+						{
+							heightmap[neighbors[i]] = .075f;
+						}
+						
+						if(heightmap[neighbors[i]] > .01f)
+						{
+							queue.add(neighbors[i]);
+						}
 					}
-					
-					heightmap[neighbors[i]] = Math.min(heightmap[neighbors[i]], 1);
-					visited.add(neighbors[i]);
-					
-					if(heightmap[neighbors[i]] > .1f  && heightmap[neighbors[i]] < .3f)
-					{
-						heightmap[neighbors[i]] = .075f;
-					}
-					
-					if(heightmap[neighbors[i]] > .01f)
-					{
-						queue.add(neighbors[i]);
-					}
-					
 				}
 			}
 		}	
-		
-		
-		
 	}
+	
+	
+	public 
+	
 	
 		
 	class RGBColor
@@ -243,8 +248,27 @@ public class DualGraph
 
 
 	public int findIndex(float mouseX, float mouseY) {
-		// TODO Auto-generated method stub
-		return 0;
+		float minDist = Float.MAX_VALUE;
+		int winner = -1;
+		
+		for(int i = 0; i < numOfNodes; i++)
+		{
+			float curr = dist2d(mouseX, mouseY, sitePoints[i][0], sitePoints[i][1]);
+			if(curr < minDist)
+			{
+				minDist = curr;
+				winner = i;
+			}
+		}
+		return winner;
+	}
+	
+	public float dist2d(float a, float b, float c, float d)
+	{
+		return (float)Math.sqrt((a-c)*(a-c) + (b-d)*(b-d));
+		
+		
+		
 	}
 	
 

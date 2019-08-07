@@ -1,7 +1,4 @@
 
-import java.util.Random;
-
-import mesh.MPolygon;
 import processing.core.PApplet;
 
 
@@ -12,7 +9,11 @@ public class VoreTerrain extends PApplet
 	float height = 900;
 	DualGraph graph;
 	float timer = 6;
-	int numOfNodes = 6000;
+	int numOfNodes = 12000;
+
+	float persistence = .95f;
+	float sharpness = .4f;
+	float sH = 1;
 		
 	public static void main(String[] args)
 	{
@@ -37,23 +38,41 @@ public class VoreTerrain extends PApplet
 		graph.addIsland(.95f, sharpness, 1);
 		for(int  i = 0; i < 9; i++)
 		{
-			graph.addIsland(.8f, .2f, (float) Math.random()/2 + .3f);
+			graph.addIsland(.92f, (float) (.2f + Math.random()/5), (float) Math.random()/2 + .5f);
 		}
 		
 
 
-		graph.renderHeightMap();
 		
 
 	}
 	
-	
+	public void draw()
+	{
+		graph.renderHeightMap();
+
+	}
 
 		
 	public void mouseClicked()
 	{
-		int index = graph.findIndex(mouseX, mouseY)
+		int index = graph.findIndex(mouseX, mouseY);
+		
+		graph.addIsland((float) (.8f + Math.random()/5.5f - .2) , .2f, (float) Math.random()/2 + .5f, index);
+		
 	}
-			
+		
+	public void keyPressed()
+	{
+		if(key == 'a')
+		{
+			graph.heightmap = new float[numOfNodes];
+			graph.addIsland(.95f, sharpness, 1);
+			for(int  i = 0; i < 9; i++)
+			{
+				graph.addIsland(.97f, (float) (.2f + Math.random()/5), (float) Math.random()/2 + .5f);
+			}
+		}
+	}
 	
 }
