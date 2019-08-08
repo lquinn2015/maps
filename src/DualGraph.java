@@ -5,6 +5,7 @@ import java.util.Random;
 
 import mesh.*;
 import processing.core.PApplet;
+import processing.core.PImage;
 
 public class DualGraph
 {
@@ -132,6 +133,23 @@ public class DualGraph
 		{
 			parent.line(mesh[i][0], mesh[i][1], mesh[i][2], mesh[i][3]);
 		}
+	}
+	
+	
+	public void renderCoastMap()
+	{
+		MPolygon[] tiles = graph.getRegions();
+		
+		for(int i = 0; i < tiles.length; i++)
+		{
+			RGBColor b = getColor(1, heightmap[i]);
+			parent.fill(b.r,b.g,b.b);
+			if(biomes[i] != null && biomes[i].equals("Ocean-Coast")) // only cross hatch ocean tiles?
+			{
+				tiles[i].draw(parent);
+			}
+		}
+		
 		
 	}
 	
@@ -223,7 +241,80 @@ public class DualGraph
 	}
 	
 	
-	public 
+	public void discoverSeas()
+	{
+		int members = 0;
+		boolean visited[];
+		do 
+		{
+			members = 0;
+			visited= new boolean[numOfNodes];
+			PriorityQueue<Integer> queue = new PriorityQueue<>();
+			queue.add(rand.nextInt(numOfNodes));	// cost of picking land and ending is low
+			
+			while(!queue.isEmpty())
+			{
+				int curr = queue.poll();
+				if(!visited[curr]) 
+				{
+					visited[curr] = true;
+					if(heightmap[curr] < WATER_HEIGHT)
+					{
+						members++;
+						int[] neighbors = getNeighbors(curr);
+						for(int i = 0; i < neighbors.length; i++)
+						{
+							if(!visited[neighbors[i]])
+							{
+								queue.add(neighbors[i]);
+							}
+						}
+						
+					}
+					else
+					{
+						biomes[curr] = "Coast";
+					}	
+				}
+			}
+		} while(members < 300); // oceans should be big
+		
+		for(int i = 0; i < numOfNodes; i++)
+		{
+			if(visited[i] && heightmap[i] <= WATER_HEIGHT )
+			{
+				int[] neighbors = getNeighbors(i);
+				boolean hatch = false;
+				for(int t = 0; t < neighbors.length; t++)
+				{
+					if(heightmap[neighbors[t]] > WATER_HEIGHT )
+					{
+						hatch = true;
+						break;
+					}
+				}
+				if(hatch)
+				{
+					biomes[i] = "Ocean-Coast";					
+				}
+				else
+				{
+					biomes[i] = "Ocean";
+				}
+				
+			}
+			else if(heightmap[i] <= WATER_HEIGHT)
+			{
+				biomes[i] = "Lake";
+			}
+			else if(!visited[i])
+			{
+				biomes[i] = "Land";
+			}
+		}
+		
+		
+	}
 	
 	
 		
@@ -266,9 +357,6 @@ public class DualGraph
 	public float dist2d(float a, float b, float c, float d)
 	{
 		return (float)Math.sqrt((a-c)*(a-c) + (b-d)*(b-d));
-		
-		
-		
 	}
 	
 
