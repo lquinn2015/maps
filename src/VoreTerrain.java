@@ -1,7 +1,7 @@
 
+import java.sql.Time;
+
 import processing.core.PApplet;
-import processing.core.PImage;
-import processing.core.PShape;
 
 
 public class VoreTerrain extends PApplet
@@ -32,7 +32,9 @@ public class VoreTerrain extends PApplet
 	public void setup()
 	{
 	
-//		graph = new DualGraph(this, width, height, 2, numOfNodes);
+	
+		graph = new DualGraph(this, width, height, 2, numOfNodes);
+
 //		strokeWeight(0);
 //		
 //		float sharpness = .4f;
@@ -42,24 +44,15 @@ public class VoreTerrain extends PApplet
 //		{
 //			graph.addIsland(.92f, (float) (.2f + Math.random()/5), (float) Math.random()/2 + .5f);
 //		}
-//		
+		
+		OctaveMountains heightModule = new OctaveMountains(graph, this);
+		heightModule.genHeightMap(.5f, 6, 500);
 
 	}
 	
 	public void draw()
 	{
-//		graph.renderCoastMap();
-		PImage hatching =  loadImage("resources/hatching.png");
-
-		noFill();
-		noStroke();
-		beginShape();
-		texture(hatching);
-		vertex(0,0, 0, 0);		
-		vertex(0,700, 640,0);
-		vertex(700,700, 640 , 480);
-		vertex(700,0 , 0, 480);
-		endShape(PApplet.CLOSE);
+		graph.renderHeightMap();
 		
 	}
 
@@ -82,6 +75,11 @@ public class VoreTerrain extends PApplet
 			{
 				graph.addIsland(.97f, (float) (.2f + Math.random()/5), (float) Math.random()/2 + .5f);
 			}
+		}
+		if(key == 's')
+		{
+			OctaveMountains heightModule = new OctaveMountains(graph, this);
+			heightModule.genHeightMap(.5f, 6, (float)Math.random() * 1000f);
 		}
 	}
 	
